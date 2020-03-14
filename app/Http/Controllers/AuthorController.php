@@ -55,6 +55,9 @@ class AuthorController extends Controller
      */
     public function show($author)
     {
+        $author = Author::findOrFail($author);
+
+        return $this->successResponse($author);
     }
 
     /**
@@ -63,6 +66,26 @@ class AuthorController extends Controller
      */
     public function update(Request $request,  $author)
     {
+        $rules = [
+            'name' => 'max:255',
+            'gender' => 'max:255|in:male,female',
+            'country' => 'max:255'
+        ];
+
+        $this->validate($request, $rules);
+
+        $author = Author::findOrFail($author);
+
+        $author->fill($request->all());
+
+        // If nothing changed return an error
+        if ($author->isClean()) {
+            return $this->errorResponse('Must change at least one value', Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $author->save();
+
+        return $this->successResponse($author);
     }
 
     /**
@@ -71,5 +94,8 @@ class AuthorController extends Controller
      */
     public function destroy($author)
     {
+        $author = Author::findOrFail($author);
+        $author->delete();
+        return $this->successResponse($author);
     }
 }
